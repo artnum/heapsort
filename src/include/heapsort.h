@@ -20,6 +20,6 @@ struct heapsort_ctx_t {
   uint8_t *tmp;
 };
 
-void heapsort_sort(struct heapsort_ctx_t ctx, uint8_t *origin, size_t length);
+void heapsort(struct heapsort_ctx_t ctx, uint8_t *origin, size_t length);
 
 #endif /* HEAPSORT_H__ */

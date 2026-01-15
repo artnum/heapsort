@@ -22,6 +22,7 @@ static inline int _cmp(struct heapsort_ctx_t ctx, uint8_t *origin, size_t a,
     return *(double *)(origin + (a * ctx.size) + ctx.offset) >
            *(double *)(origin + (b * ctx.size) + ctx.offset);
   }
+  return 0;
 }
 
 static inline void _swap(uint8_t *a, uint8_t *b, uint8_t *tmp, size_t size) {
@@ -54,7 +55,7 @@ __heapify:
   }
 }
 
-void heapsort_sort(struct heapsort_ctx_t ctx, uint8_t *origin, size_t length) {
+void heapsort(struct heapsort_ctx_t ctx, uint8_t *origin, size_t length) {
   for (size_t i = length / 2 - 1; i + 1 != 0; i--) {
     _heapify(ctx, origin, i, length);
   }
