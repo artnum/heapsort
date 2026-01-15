@@ -2,7 +2,7 @@ DEBUG ?= 1
 ifeq ($(DEBUG), 1)
 CFLAGS=-ggdb -Wall -Wextra -pedantic
 else
-CFLAGS=-O2 -NDEBUG -march=native
+CFLAGS=-O2 -DNDEBUG -march=native
 endif
 NAME=heapsort.a
 CC=gcc

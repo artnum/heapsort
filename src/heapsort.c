@@ -1,4 +1,7 @@
 #include "include/heapsort.h"
+#ifndef NDEBUG
+#include <stdio.h>
+#endif
 
 static inline int _cmp(struct heapsort_ctx_t ctx, uint8_t *origin, size_t a,
                        size_t b) {
@@ -26,9 +29,12 @@ static inline int _cmp(struct heapsort_ctx_t ctx, uint8_t *origin, size_t a,
 }
 
 static inline void _swap(uint8_t *a, uint8_t *b, uint8_t *tmp, size_t size) {
-  memcpy(tmp, a, size);
-  memcpy(a, b, size);
-  memcpy(b, tmp, size);
+#ifndef NDEBUG
+  fprintf(stderr, "%p %p %p %ld\n", a, b, tmp, size);
+#endif
+  memmove(tmp, a, size);
+  memmove(a, b, size);
+  memmove(b, tmp, size);
 }
 
 static inline void _heapify(struct heapsort_ctx_t ctx, uint8_t *origin,
