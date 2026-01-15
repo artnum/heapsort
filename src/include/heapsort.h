@@ -13,10 +13,15 @@ enum heapsort_cmp_type {
   HEAPSORT_CMP_DOUBLE
 };
 
+enum heapsort_direction {
+  HEAPSORT_DIR_ASC,
+  HEAPSORT_DIR_DESC,
+};
 struct heapsort_ctx_t {
   size_t size;
   size_t offset;
   enum heapsort_cmp_type type;
+  enum heapsort_direction direction;
   uint8_t *tmp;
 };
 

@@ -5,6 +5,11 @@
 
 static inline int _cmp(struct heapsort_ctx_t ctx, uint8_t *origin, size_t a,
                        size_t b) {
+  if (ctx.direction == HEAPSORT_DIR_DESC) {
+    size_t t = a;
+    a = b;
+    b = t;
+  }
   switch (ctx.type) {
   case HEAPSORT_CMP_UINT8:
     return *(uint8_t *)(origin + (a * ctx.size) + ctx.offset) >

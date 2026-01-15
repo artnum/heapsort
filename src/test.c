@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define ARRAY_SIZE 5000
+#define ARRAY_SIZE 32
 
 struct some_structure {
   int i;
@@ -22,9 +22,9 @@ int main(void) {
   {
     struct some_structure tmp = {0};
     struct some_structure array[ARRAY_SIZE + 1] = {0};
-    struct heapsort_ctx_t ctx = {sizeof(struct some_structure),
-                                 offsetof(struct some_structure, order),
-                                 HEAPSORT_CMP_UINT16, (uint8_t *)&tmp};
+    struct heapsort_ctx_t ctx = {
+        sizeof(struct some_structure), offsetof(struct some_structure, order),
+        HEAPSORT_CMP_UINT16, HEAPSORT_DIR_ASC, (uint8_t *)&tmp};
 
     for (int i = 0; i < ARRAY_SIZE; i++) {
       array[i].order = rand() % 0xFFFF;
@@ -41,7 +41,7 @@ int main(void) {
     uint32_t tmp = 0;
     uint32_t array[ARRAY_SIZE + 1] = {0};
     struct heapsort_ctx_t ctx = {sizeof(uint32_t), 0, HEAPSORT_CMP_UINT32,
-                                 (uint8_t *)&tmp};
+                                 HEAPSORT_DIR_DESC, (uint8_t *)&tmp};
     for (int i = 0; i < ARRAY_SIZE; i++) {
       array[i] = rand() % 0xFFFFFFFF;
     }
