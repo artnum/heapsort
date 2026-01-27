@@ -1,7 +1,7 @@
 #include "include/heapsort.h"
-#ifndef NDEBUG
-#include <stdio.h>
-#endif
+#include <assert.h>
+#include <stdint.h>
+#include <string.h>
 
 static inline int _cmp(struct heapsort_ctx_t ctx, uint8_t *origin, size_t a,
                        size_t b) {
@@ -10,36 +10,57 @@ static inline int _cmp(struct heapsort_ctx_t ctx, uint8_t *origin, size_t a,
     a = b;
     b = t;
   }
+  uint8_t *tmp_a = origin + (a * ctx.size) + ctx.offset;
+  uint8_t *tmp_b = origin + (b * ctx.size) + ctx.offset;
+  if (ctx.indirect != 0) {
+    tmp_a = (uint8_t *)*(uintptr_t *)(origin + (a * ctx.size)) + ctx.offset;
+    tmp_b = (uint8_t *)*(uintptr_t *)(origin + (b * ctx.size)) + ctx.offset;
+    for (int i = ctx.indirect - 1; i > 0; i--) {
+      tmp_a = (uint8_t *)*(uintptr_t *)tmp_a;
+      tmp_b = (uint8_t *)*(uintptr_t *)tmp_b;
+      if (tmp_a == NULL && tmp_b == NULL) {
+        return 0;
+      }
+      if (tmp_a == NULL && tmp_b != NULL) {
+        return 0;
+      }
+      if (tmp_a != NULL && tmp_b == NULL) {
+        return 1;
+      }
+    }
+  }
   switch (ctx.type) {
   case HEAPSORT_CMP_UINT8:
-    return *(uint8_t *)(origin + (a * ctx.size) + ctx.offset) >
-           *(uint8_t *)(origin + (b * ctx.size) + ctx.offset);
+    return *(uint8_t *)tmp_a > *(uint8_t *)tmp_b;
   case HEAPSORT_CMP_UINT16:
-    return *(uint16_t *)(origin + (a * ctx.size) + ctx.offset) >
-           *(uint16_t *)(origin + (b * ctx.size) + ctx.offset);
+    return *(uint16_t *)tmp_a > *(uint16_t *)tmp_b;
   case HEAPSORT_CMP_UINT32:
-    return *(uint32_t *)(origin + (a * ctx.size) + ctx.offset) >
-           *(uint32_t *)(origin + (b * ctx.size) + ctx.offset);
+    return *(uint32_t *)tmp_a > *(uint32_t *)tmp_b;
   case HEAPSORT_CMP_UINT64:
-    return *(uint64_t *)(origin + (a * ctx.size) + ctx.offset) >
-           *(uint64_t *)(origin + (b * ctx.size) + ctx.offset);
+    return *(uint64_t *)tmp_a > *(uint64_t *)tmp_b;
   case HEAPSORT_CMP_FLOAT:
-    return *(float *)(origin + (a * ctx.size) + ctx.offset) >
-           *(float *)(origin + (b * ctx.size) + ctx.offset);
+    return *(float *)tmp_a > *(float *)tmp_b;
   case HEAPSORT_CMP_DOUBLE:
-    return *(double *)(origin + (a * ctx.size) + ctx.offset) >
-           *(double *)(origin + (b * ctx.size) + ctx.offset);
+    return *(double *)tmp_a > *(double *)tmp_b;
+  case HEAPSORT_CMP_STRING:
+    return strcmp((const char *)tmp_a, (const char *)tmp_b) > 0;
+  case HEAPSORT_CMP_CASE_STRING:
+    return strcasecmp((const char *)tmp_a, (const char *)tmp_b) > 0;
   }
   return 0;
 }
 
-static inline void _swap(uint8_t *a, uint8_t *b, uint8_t *tmp, size_t size) {
-#ifndef NDEBUG
-  fprintf(stderr, "%p %p %p %ld\n", a, b, tmp, size);
-#endif
-  memmove(tmp, a, size);
-  memmove(a, b, size);
-  memmove(b, tmp, size);
+static inline void _swap(struct heapsort_ctx_t ctx, uint8_t *a, uint8_t *b) {
+  if (ctx.indirect != 0) {
+    uintptr_t tmp = 0;
+    tmp = *(uintptr_t *)a;
+    *(uintptr_t *)a = *(uintptr_t *)b;
+    *(uintptr_t *)b = tmp;
+  } else {
+    memcpy(ctx.tmp, a, ctx.size);
+    memcpy(a, b, ctx.size);
+    memcpy(b, ctx.tmp, ctx.size);
+  }
 }
 
 static inline void _heapify(struct heapsort_ctx_t ctx, uint8_t *origin,
@@ -59,19 +80,25 @@ __heapify:
     largest = right;
 
   if (largest != rootnode) {
-    _swap(origin + (rootnode * ctx.size), origin + (largest * ctx.size),
-          ctx.tmp, ctx.size);
+    _swap(ctx, origin + (rootnode * ctx.size), origin + (largest * ctx.size));
     rootnode = largest;
     goto __heapify;
   }
 }
 
 void heapsort(struct heapsort_ctx_t ctx, uint8_t *origin, size_t length) {
+  assert(origin != NULL);
+  assert(!((ctx.tmp == NULL || ctx.size == 0) && ctx.indirect == 0));
+
+  if (ctx.indirect != 0) {
+    ctx.size = sizeof(uintptr_t);
+  }
+
   for (size_t i = length / 2 - 1; i + 1 != 0; i--) {
     _heapify(ctx, origin, i, length);
   }
   for (size_t i = length - 1; i > 0; i--) {
-    _swap(origin, origin + (ctx.size * i), ctx.tmp, ctx.size);
+    _swap(ctx, origin, origin + (ctx.size * i));
     _heapify(ctx, origin, 0, i);
   }
 }
