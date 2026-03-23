@@ -29,6 +29,7 @@ static inline int _cmp(struct heapsort_ctx_t ctx, uint8_t *origin, size_t a,
       }
     }
   }
+
   switch (ctx.type) {
   case HEAPSORT_CMP_UINT8:
     return *(uint8_t *)tmp_a > *(uint8_t *)tmp_b;
@@ -90,7 +91,12 @@ void heapsort(struct heapsort_ctx_t ctx, uint8_t *origin, size_t length) {
   assert(origin != NULL);
   assert(!((ctx.tmp == NULL || ctx.size == 0) && ctx.indirect == 0));
 
-  if (ctx.indirect != 0) {
+  /* Indirect was first thought as a classic array of pointer. But it can be
+   * possible that the pointer size is not the size of a pointer as the user
+   * might have some alignement requirement (like 16 bytes aligned of 8 bytes
+   * pointers). So on indirect mode, we resepect the size provided by user.
+   */
+  if (ctx.indirect != 0 && ctx.size == 0) {
     ctx.size = sizeof(uintptr_t);
   }
 
